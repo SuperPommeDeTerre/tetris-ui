@@ -4,7 +4,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: path.resolve(__dirname, 'src/index.js'),
+  entry: [
+    path.resolve(__dirname, 'src/index.js'),
+  ],
   plugins: [
     new MiniCssExtractPlugin({
       linkType: "text/css",
@@ -13,6 +15,11 @@ module.exports = {
       template: path.resolve(__dirname, 'src/index.html'),
       title: 'Tetris',
       lang: 'fr',
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, 'public'), to: path.resolve(__dirname, 'dist') },
+      ],
     }),
   ],
   output: {

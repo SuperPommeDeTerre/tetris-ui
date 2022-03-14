@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en" data-bs-color-scheme>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)">
     <title>Tetris</title>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">Navbar</a>
+        <a class="navbar-brand" href="#" id="apptitle">Tetris</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,16 +38,11 @@
               <a class="nav-link disabled">Disabled</a>
             </li>
           </ul>
-          <form class="d-flex">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
         </div>
       </div>
     </nav>
     <div class="container-fluid" id="mainContent">
       <canvas id="localGame"></canvas>
     </div>
-    <script src="bundle.js"></script>
   </body>
 </html>
