@@ -42,6 +42,7 @@
     "i18next-chained-backend": "^3.0.2",
     "i18next-http-backend": "^1.4.0",
     "i18next-resources-to-backend": "^1.0.0",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "uuid": "^8.3.2"
   }
 }

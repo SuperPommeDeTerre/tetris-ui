@@ -7,6 +7,7 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-dark-5/dist/css/bootstrap-dark.min.css';
 import './navbar';
+import TetrisGame from './tetris';
 
 /**
  * Initialize i18next.
@@ -39,5 +40,14 @@ i18next
  */
 i18next.on('languageChanged', (lng) => {
   document.documentElement.setAttribute('lang', lng);
-  document.getElementById('mainContent').innerText = i18next.t('maintitle');
+});
+
+window.addEventListener("DOMContentLoaded", (event) => {
+  var currentGame = new TetrisGame(document.getElementById('localGame'));
+  document.getElementById('btnStartGame').addEventListener('click', function() {
+    currentGame.start();
+  });
+  document.getElementById('btnStopGame').addEventListener('click', function() {
+    currentGame.stop();
+  });
 });
