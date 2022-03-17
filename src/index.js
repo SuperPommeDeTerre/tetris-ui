@@ -1,11 +1,12 @@
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import ChainedBackend from "i18next-chained-backend";
-import HttpBackend from "i18next-http-backend";
+import ChainedBackend from 'i18next-chained-backend';
+import HttpBackend from 'i18next-http-backend';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-dark-5/dist/css/bootstrap-dark.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import './navbar';
 import TetrisGame from './tetris';
 

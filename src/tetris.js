@@ -66,6 +66,9 @@ class RandomGenerator {
     }
 }
 
+/**
+ * Main game class
+ */
 class TetrisGame {
     #gameHeight = (GAMEFIELD_HEIGHT * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
     #gameWidth = (GAMEFIELD_WIDTH * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
@@ -150,6 +153,10 @@ class TetrisGame {
         ctxBackground.stroke();
     }
 
+    #performInitialCountdown() {
+        console.log('Initial countdown...');
+    }
+
     #moveLeft() {
         console.log('moveLeft');
     }
@@ -224,6 +231,7 @@ class TetrisGame {
         document.body.addEventListener('keydown', keyDownHandler);
 
         // Start the game
+        this.#performInitialCountdown();
     }
 
     /**
