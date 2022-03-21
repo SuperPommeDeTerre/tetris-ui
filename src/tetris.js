@@ -9,6 +9,7 @@ const GAMEFIELD_STEP = 30;
 const GAMEFIELD_GRIDTHICKNESS = 1;
 
 var keyDownHandler = null;
+var tickHandler = null;
 
 /**
  * Main game class
@@ -16,6 +17,30 @@ var keyDownHandler = null;
 class TetrisGame {
     #gameHeight = (GAMEFIELD_HEIGHT * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
     #gameWidth = (GAMEFIELD_WIDTH * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
+
+    // Define game speed depending on level (from https://tetris.fandom.com/wiki/Tetris_Worlds#Gravity)
+    #SPEED_LEVELS = [
+        1.0,
+        .793,
+        .6178,
+        .47273,
+        .3552,
+        .262,
+        .18968,
+        .13473,
+        .09388,
+        .06415,
+        .04298,
+        .02822,
+        .01815,
+        .01144,
+        .00706,
+        .00426,
+        .00252,
+        .00146,
+        .00082,
+        .00046,
+    ];
 
     #gameState = {
         piece: {
@@ -25,7 +50,9 @@ class TetrisGame {
             offsetY: 0
         },
         board: null,
+        level: 0,
     };
+    #currentInterval = null;
 
     #currentRandomGenerator = new RandomGenerator();
 
@@ -94,7 +121,7 @@ class TetrisGame {
     }
 
     /**
-     * Draw a part of a piece
+     * Draw a part of a Tetromino
      */
     #drawPiecePart(destinationCanvasContext, color, offsetX, offsetY) {
         var pieceGradient = destinationCanvasContext.createLinearGradient(offsetX, offsetY, offsetX + GAMEFIELD_STEP, offsetY + GAMEFIELD_STEP);
@@ -107,8 +134,8 @@ class TetrisGame {
     /**
      * Draw a piece
      * 
-     * @param {*} destinationCanvas 
-     * @param {*} piece 
+     * @param {HTMLCanvas} destinationCanvas The canvas on which draw the piece.
+     * @param {object} piece The piece to draw
      */
     #drawPiece(destinationCanvas, piece) {
         var drawingMovingPieceContext = destinationCanvas.getContext('2d');
@@ -238,6 +265,11 @@ class TetrisGame {
         }
     }
 
+    static #tick() {
+        this.#gameState.piece.offsetY += GAMEFIELD_STEP;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
+    }
+
     /**
      * Start a new game
      */
@@ -252,6 +284,10 @@ class TetrisGame {
 
         // Start the game
         this.#performInitialCountdown();
+
+        // Sets the tick...
+        tickHandler = TetrisGame.#tick.bind(this);
+        this.#currentInterval = window.setInterval(tickHandler, this.#SPEED_LEVELS[this.#gameState.level] * 1000);
 
         // Play music...
         this.#gameMusic = new Audio('music/Korobeïniki.ogg');
@@ -271,6 +307,7 @@ class TetrisGame {
     stop() {
         document.body.removeEventListener('keydown', keyDownHandler);
         this.#gameMusic.pause();
+        window.clearInterval(this.#currentInterval);
     }
 
     /**
