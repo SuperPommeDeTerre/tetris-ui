@@ -1,6 +1,7 @@
 import i18next from 'i18next';
 import { v4 as uuidv4 } from 'uuid';
 import TETROMINOS from './tetrominos';
+import RandomGenerator from './randomgenerator';
 
 const GAMEFIELD_WIDTH = 10;
 const GAMEFIELD_HEIGHT = 20;
@@ -10,72 +11,21 @@ const GAMEFIELD_GRIDTHICKNESS = 1;
 var keyDownHandler = null;
 
 /**
- * Random generator of pieces.
- * This generator follows the Tetris guidelines of the 7-bag random generator (cf. https://tetris.fandom.com/wiki/Random_Generator)
- */
-class RandomGenerator {
-    #currentBag = [];
-    #baseBag = [
-        TETROMINOS.TI,
-        TETROMINOS.TO,
-        TETROMINOS.TJ,
-        TETROMINOS.TL,
-        TETROMINOS.TS,
-        TETROMINOS.TT,
-        TETROMINOS.TZ,
-    ];
-
-    /**
-     * Default constructor. It only generates the first bag.
-     */
-    constructor() {
-        // Generate a new shuffled bag
-        this.#generateBag();
-    }
-
-    #generateBag() {
-        // Copy base bag...
-        this.#currentBag = [...this.#baseBag];
-        // ... And shuffle it !
-        this.#shuffleBag();
-    }
-
-    /**
-     * Randomize array in-place using Durstenfeld shuffle algorithm
-     */
-    #shuffleBag() {
-        for (let i = this.#currentBag.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
-            let temp = this.#currentBag[i];
-            this.#currentBag[i] = this.#currentBag[j];
-            this.#currentBag[j] = temp;
-        }
-    }
-
-    /**
-     * Get a piece from the bag and remove it.
-     * If the bag is empty, generates a new one.
-     */
-    getPiece() {
-        // If the bag is empty, then generate a new bag
-        if (this.#currentBag.length == 0) {
-            // Generate a new shuffled bag
-            this.#generateBag();
-        }
-        return this.#currentBag.pop();
-    }
-}
-
-/**
  * Main game class
  */
 class TetrisGame {
     #gameHeight = (GAMEFIELD_HEIGHT * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
     #gameWidth = (GAMEFIELD_WIDTH * GAMEFIELD_STEP) + GAMEFIELD_GRIDTHICKNESS;
 
-    #gameState = null;
+    #gameState = {
+        piece: {
+            type: null,
+            state: null
+        },
+        board: null,
+    };
 
-    #currentRandowGenerator = new RandomGenerator();
+    #currentRandomGenerator = new RandomGenerator();
 
     /**
      * Game drawing canvas
@@ -135,7 +85,38 @@ class TetrisGame {
         // Draw background
         this.#drawBackground();
     }
-    
+
+    /**
+     * Draw a part of a piece
+     */
+    #drawPiecePart(destinationCanvasContext, color, offsetX, offsetY) {
+        var pieceGradient = destinationCanvasContext.createLinearGradient(offsetX, offsetY, offsetX + GAMEFIELD_STEP, offsetY + GAMEFIELD_STEP);
+        pieceGradient.addColorStop(0, color);
+        pieceGradient.addColorStop(1, 'grey');
+        destinationCanvasContext.fillStyle = pieceGradient;
+        destinationCanvasContext.fillRect(offsetX, offsetY, GAMEFIELD_STEP, GAMEFIELD_STEP);
+    }
+
+    #drawPiece(destinationCanvas, piece, offsetX, offsetY) {
+        var drawingMovingPieceContext = destinationCanvas.getContext('2d');
+        // Clear the canvas
+        drawingMovingPieceContext.clearRect(0, 0, destinationCanvas.width, destinationCanvas.height);
+        var currentOffsetX = offsetX;
+        var currentOffsetY = offsetY;
+        // Draw individual parts of the piece
+        for (let pieceLine of piece.state.geometry) {
+            for (let piecePart of pieceLine) {
+                if (piecePart == 1) {
+                    this.#drawPiecePart(drawingMovingPieceContext, piece.type.color, currentOffsetX, currentOffsetY);
+                }
+                currentOffsetX += GAMEFIELD_STEP;
+            }
+            currentOffsetY += GAMEFIELD_STEP;            
+            // Reset the Y offset as we start a new line
+            currentOffsetX = offsetX;
+        }
+    }
+
     /**
      * Draw game background (done one time at initialization)
      */
@@ -167,6 +148,8 @@ class TetrisGame {
 
     #rotateClockwise() {
         console.log('rotateClockwise');
+        this.#gameState.piece.state = this.#gameState.piece.state.next;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece, 0, 0);
     }
 
     #rotateAntiClockwise() {
@@ -179,6 +162,9 @@ class TetrisGame {
 
     #fastFall() {
         console.log('fastFall');
+        this.#gameState.piece.type = this.#currentRandomGenerator.getPiece();
+        this.#gameState.piece.state = this.#gameState.piece.type.states.start;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece, 0, 0);
     }
 
     #hold() {
@@ -223,8 +209,8 @@ class TetrisGame {
      */
     start() {
         // Initialize context
-        this.#gameState = new Array(GAMEFIELD_WIDTH);
-        this.#gameState.fill((new Array(GAMEFIELD_HEIGHT)).fill(0));
+        this.#gameState.board = new Array(GAMEFIELD_WIDTH);
+        this.#gameState.board.fill((new Array(GAMEFIELD_HEIGHT)).fill(0));
 
         // Bind keys
         keyDownHandler = TetrisGame.#handleKeyEvent.bind(this);
@@ -232,6 +218,8 @@ class TetrisGame {
 
         // Start the game
         this.#performInitialCountdown();
+        let piece = this.#currentRandomGenerator.getPiece();
+        this.#drawPiece(this.#gameMovingPieceCanvas, { type: piece, state: piece.states.start }, 0, 0);
     }
 
     /**

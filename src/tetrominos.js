@@ -52,10 +52,8 @@
         states: {
             start: {
                 geometry: [
-                    [ 0, 1, 1, 0 ],
-                    [ 0, 1, 1, 0 ],
-                    [ 0, 0, 0, 0 ],
-                    [ 0, 0, 0, 0 ],
+                    [ 1, 1 ],
+                    [ 1, 1 ],
                 ],
                 next: null,
                 prev: null,
@@ -324,3 +322,5 @@ TETROMINOS.TS.states.rotate180.prev = TETROMINOS.TS.states.rotate90;
 TETROMINOS.TS.states.rotate180.next = TETROMINOS.TS.states.rotate270;
 TETROMINOS.TS.states.rotate270.prev = TETROMINOS.TS.states.rotate180;
 TETROMINOS.TS.states.rotate270.next = TETROMINOS.TS.states.start;
+
+export default TETROMINOS;
