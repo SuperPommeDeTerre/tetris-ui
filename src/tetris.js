@@ -20,7 +20,9 @@ class TetrisGame {
     #gameState = {
         piece: {
             type: null,
-            state: null
+            state: null,
+            offsetX: 0,
+            offsetY: 0
         },
         board: null,
     };
@@ -31,6 +33,11 @@ class TetrisGame {
      * Game drawing canvas
      */
     #gameContainer = null;
+
+    /**
+     * Music of the game
+     */
+    #gameMusic = null;
 
     /**
      * Canvas used
@@ -97,12 +104,18 @@ class TetrisGame {
         destinationCanvasContext.fillRect(offsetX, offsetY, GAMEFIELD_STEP, GAMEFIELD_STEP);
     }
 
-    #drawPiece(destinationCanvas, piece, offsetX, offsetY) {
+    /**
+     * Draw a piece
+     * 
+     * @param {*} destinationCanvas 
+     * @param {*} piece 
+     */
+    #drawPiece(destinationCanvas, piece) {
         var drawingMovingPieceContext = destinationCanvas.getContext('2d');
         // Clear the canvas
         drawingMovingPieceContext.clearRect(0, 0, destinationCanvas.width, destinationCanvas.height);
-        var currentOffsetX = offsetX;
-        var currentOffsetY = offsetY;
+        var currentOffsetX = piece.offsetX;
+        var currentOffsetY = piece.offsetY;
         // Draw individual parts of the piece
         for (let pieceLine of piece.state.geometry) {
             for (let piecePart of pieceLine) {
@@ -113,7 +126,7 @@ class TetrisGame {
             }
             currentOffsetY += GAMEFIELD_STEP;            
             // Reset the Y offset as we start a new line
-            currentOffsetX = offsetX;
+            currentOffsetX = piece.offsetX;
         }
     }
 
@@ -140,31 +153,47 @@ class TetrisGame {
 
     #moveLeft() {
         console.log('moveLeft');
+        if (this.#gameState.piece.offsetX > -(GAMEFIELD_STEP * this.#gameState.piece.state.offsetX)) {
+            this.#gameState.piece.offsetX -= GAMEFIELD_STEP;
+            this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
+        }
+
     }
 
     #moveRight() {
         console.log('moveRight');
+        if (this.#gameState.piece.offsetX < ((GAMEFIELD_WIDTH - this.#gameState.piece.state.width - this.#gameState.piece.state.offsetX) * GAMEFIELD_STEP)) {
+            this.#gameState.piece.offsetX += GAMEFIELD_STEP;
+            this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
+        }
     }
 
     #rotateClockwise() {
         console.log('rotateClockwise');
         this.#gameState.piece.state = this.#gameState.piece.state.next;
-        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece, 0, 0);
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
     }
 
     #rotateAntiClockwise() {
         console.log('rotateAntiClockwise');
+        this.#gameState.piece.state = this.#gameState.piece.state.prev;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
     }
 
-    #drop() {
-        console.log('drop');
-    }
-
-    #fastFall() {
-        console.log('fastFall');
+    /**
+     * Performs a hard drop (Drop directly the piece to the bottom)
+     */
+    #hardDrop() {
+        console.log('hardDrop');
         this.#gameState.piece.type = this.#currentRandomGenerator.getPiece();
         this.#gameState.piece.state = this.#gameState.piece.type.states.start;
-        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece, 0, 0);
+        this.#gameState.piece.offsetX = 0;
+        this.#gameState.piece.offsetY = 0;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece);
+    }
+
+    #softDrop() {
+        console.log('softDrop');
     }
 
     #hold() {
@@ -175,15 +204,20 @@ class TetrisGame {
         let handled = false;
         switch (myKeyEvent.code) {
             case 'Space':
-                this.#drop();
+                this.#hardDrop();
                 handled = true;
                 break;
+            case 'KeyX':
             case 'ArrowUp':
                 this.#rotateClockwise();
                 handled = true;
                 break;
+            case 'KeyZ':
+                this.#rotateAntiClockwise();
+                handled = true;
+                break;
             case 'ArrowDown':
-                this.#fastFall();
+                this.#softDrop();
                 handled = true;
                 break;
             case 'ArrowLeft':
@@ -194,7 +228,7 @@ class TetrisGame {
                 this.#moveRight();
                 handled = true;
                 break;
-            case 'KeyV':
+            case 'KeyC':
                 this.#hold();
                 handled = true;
                 break;
@@ -218,8 +252,17 @@ class TetrisGame {
 
         // Start the game
         this.#performInitialCountdown();
-        let piece = this.#currentRandomGenerator.getPiece();
-        this.#drawPiece(this.#gameMovingPieceCanvas, { type: piece, state: piece.states.start }, 0, 0);
+
+        // Play music...
+        this.#gameMusic = new Audio('music/Korobeïniki.ogg');
+        this.#gameMusic.loop = true;
+        this.#gameMusic.play();
+
+        this.#gameState.piece.type = this.#currentRandomGenerator.getPiece();
+        this.#gameState.piece.state = this.#gameState.piece.type.states.start;
+        this.#gameState.piece.offsetX = 0;
+        this.#gameState.piece.offsetY = 0;
+        this.#drawPiece(this.#gameMovingPieceCanvas, this.#gameState.piece, 0, 0);
     }
 
     /**
@@ -227,6 +270,14 @@ class TetrisGame {
      */
     stop() {
         document.body.removeEventListener('keydown', keyDownHandler);
+        this.#gameMusic.pause();
+    }
+
+    /**
+     * Pause the game
+     */
+    pause() {
+
     }
 }
 
